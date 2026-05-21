@@ -111,10 +111,10 @@ void setup() {
   // prevents floating pin false triggers
   pinMode(TOUCH_PIN, INPUT_PULLDOWN);
 
-  // according to claude - analogReadResolution sets ADC to 12-bit mode
-  // this means readings range from 0 (no voltage) to 4095 (3.3V)
-  // default on ESP32 is already 12-bit but declaring it explicitly
-  // makes the code self-documenting and portable to other boards
+  /* analogReadResolution sets ADC to 12-bit mode.
+   This means readings range from 0 (no voltage) to 4095 (3.3V).
+   Default on ESP32 is already 12-bit but declaring it explicitly
+   makes the code self-documenting and portable to other boards */
   analogReadResolution(12);
 
   Wire.begin(I2C_SDA, I2C_SCL);
@@ -164,17 +164,15 @@ bool touch = digitalRead(TOUCH_PIN);
 
 if (touch && !lastTouch) {
     // Pin just went HIGH — wait 200ms and confirm it's still HIGH
-    // A genuine finger press lasts hundreds of ms
-    // Electrical noise spikes last microseconds and won't survive this check
     delay(200);
     if (digitalRead(TOUCH_PIN)) {
       if (mqtt.connected()) {
         Serial.println("[EVENT] Migraine marker sent");
         mqtt.publish("home/baro/event/--MIGRAINE--", "1");
 
-        // Hold the on state for 2 seconds so HA can register it
-        // then publish "0" to clear the binary sensor back to off
-        // Without this HA never receives an off state and stays On permanently
+        /* Hold the ON state for 2 seconds so HA can register it
+         then publish "0" to clear the binary sensor back to off.
+         Without this HA never receives an off state and stays ON permanently. */
         delay(2000);
         mqtt.publish("home/baro/event/--MIGRAINE--", "0");
         Serial.println("[EVENT] Migraine marker cleared");
@@ -193,10 +191,10 @@ lastTouch = touch;
     float temp = bmp.readTemperature();
     float pressure = bmp.readPressure() / 100.0;
 
-    // MQ-135 Reading
-    // analogRead returns 0-4095 on ESP32 12-bit ADC
-    // we take 10 samples and average them to smooth out
-    // moment-to-moment electrical noise in the analog signal
+    /*             MQ-135 Reading
+     analogRead returns 0-4095 on ESP32 12-bit ADC
+     we take 10 samples and average them to smooth out
+     moment-to-moment electrical noise in the analog signal  */
     int mq13Sum = 0;
     for (int i = 0; i < 10; i++) {
       mq13Sum += analogRead(MQ135_PIN);
@@ -225,5 +223,5 @@ lastTouch = touch;
   }
 
 
-  delay(50); // keep loop sane
+  delay(50); // keeps loop sane
 }
